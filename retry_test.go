@@ -631,6 +631,45 @@ func TestClientRetryPost(t *testing.T) {
 	}
 }
 
+func TestClientRetryPostMultipart(t *testing.T) {
+	ts := createPostServer(t)
+	defer ts.Close()
+
+	usersmap := map[string]interface{}{
+		"user1": map[string]interface{}{"FirstName": "firstname1", "LastName": "lastname1", "ZipCode": "10001"},
+	}
+
+	var users []map[string]interface{}
+	users = append(users, usersmap)
+
+	c := dc()
+	c.SetRetryCount(3)
+	c.AddRetryCondition(RetryConditionFunc(func(r *Response, _ error) bool {
+		return r.StatusCode() >= http.StatusInternalServerError
+	}))
+
+	dataJSON, err := json.Marshal(usersmap)
+	if err != nil {
+		t.Errorf("Expected no error, but got %v", err.Error())
+	}
+
+	resp, _ := c.R().
+		SetMultipartField("data", "v.json", "application/json", NewByteMultipartStream(dataJSON)).
+		Post(ts.URL + "/usersmap_multipart?status=500")
+
+	if resp != nil {
+		if resp.StatusCode() == http.StatusInternalServerError {
+			t.Logf("Got response body: %s", resp.String())
+
+			if !bytes.Contains(resp.body, dataJSON) {
+				t.Errorf("json string not found in request body")
+			}
+			return
+		}
+		t.Errorf("Got unexpected response code: %d with body: %s", resp.StatusCode(), resp.String())
+	}
+}
+
 func TestClientRetryErrorRecover(t *testing.T) {
 	ts := createGetServer(t)
 	defer ts.Close()

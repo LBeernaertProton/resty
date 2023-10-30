@@ -391,23 +391,47 @@ func (r *Request) SetFileReader(param, fileName string, reader io.Reader) *Reque
 	return r
 }
 
+type StringMultipartStream struct {
+	s string
+}
+
+func NewStringMultipartStream(s string) *StringMultipartStream {
+	return &StringMultipartStream{s: s}
+}
+
+func (s *StringMultipartStream) GetMultipartReader() io.Reader {
+	return strings.NewReader(s.s)
+}
+
+type ByteMultipartStream struct {
+	b []byte
+}
+
+func NewByteMultipartStream(b []byte) *ByteMultipartStream {
+	return &ByteMultipartStream{b: b}
+}
+
+func (b *ByteMultipartStream) GetMultipartReader() io.Reader {
+	return bytes.NewReader(b.b)
+}
+
 // SetMultipartFormData method allows simple form data to be attached to the request as `multipart:form-data`
 func (r *Request) SetMultipartFormData(data map[string]string) *Request {
 	for k, v := range data {
-		r = r.SetMultipartField(k, "", "", strings.NewReader(v))
+		r = r.SetMultipartField(k, "", "", NewStringMultipartStream(v))
 	}
 
 	return r
 }
 
 // SetMultipartField method is to set custom data using io.Reader for multipart upload.
-func (r *Request) SetMultipartField(param, fileName, contentType string, reader io.Reader) *Request {
+func (r *Request) SetMultipartField(param, fileName, contentType string, stream MultiPartStream) *Request {
 	r.isMultiPart = true
 	r.multipartFields = append(r.multipartFields, &MultipartField{
 		Param:       param,
 		FileName:    fileName,
 		ContentType: contentType,
-		Reader:      reader,
+		Stream:      stream,
 	})
 	return r
 }

@@ -204,7 +204,7 @@ func addMultipartFormField(w *multipart.Writer, mf *MultipartField) error {
 		return err
 	}
 
-	_, err = io.Copy(partWriter, mf.Reader)
+	_, err = io.Copy(partWriter, mf.Stream.GetMultipartReader())
 	return err
 }
 

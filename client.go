@@ -1328,12 +1328,16 @@ func (f *File) String() string {
 // MultipartField struct
 //_______________________________________________________________________
 
+type MultiPartStream interface {
+	GetMultipartReader() io.Reader
+}
+
 // MultipartField struct represent custom data part for multipart request
 type MultipartField struct {
 	Param       string
 	FileName    string
 	ContentType string
-	io.Reader
+	Stream      MultiPartStream
 }
 
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

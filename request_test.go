@@ -983,7 +983,7 @@ func TestMultiPartMultipartField(t *testing.T) {
 			"first_name": []string{"Jeevanandam"},
 			"last_name":  []string{"M"},
 		}).
-		SetMultipartField("uploadManifest", "upload-file.json", "application/json", bytes.NewReader(jsonBytes)).
+		SetMultipartField("uploadManifest", "upload-file.json", "application/json", NewByteMultipartStream(jsonBytes)).
 		Post(ts.URL + "/upload")
 
 	responseStr := resp.String()
@@ -1006,18 +1006,18 @@ func TestMultiPartMultipartFields(t *testing.T) {
 			Param:       "uploadManifest1",
 			FileName:    "upload-file-1.json",
 			ContentType: "application/json",
-			Reader:      strings.NewReader(jsonStr1),
+			Stream:      NewStringMultipartStream(jsonStr1),
 		},
 		{
 			Param:       "uploadManifest2",
 			FileName:    "upload-file-2.json",
 			ContentType: "application/json",
-			Reader:      strings.NewReader(jsonStr2),
+			Stream:      NewStringMultipartStream(jsonStr2),
 		},
 		{
 			Param:       "uploadManifest3",
 			ContentType: "application/json",
-			Reader:      strings.NewReader(jsonStr2),
+			Stream:      NewStringMultipartStream(jsonStr2),
 		},
 	}
 

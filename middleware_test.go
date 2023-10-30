@@ -444,6 +444,12 @@ func (errorReader) Read(p []byte) (n int, err error) {
 	return 0, errors.New("fake")
 }
 
+type errorMultipartStream struct{}
+
+func (errorMultipartStream) GetMultipartReader() io.Reader {
+	return &errorReader{}
+}
+
 func Test_parseRequestBody(t *testing.T) {
 	for _, tt := range []struct {
 		name                  string
@@ -762,12 +768,12 @@ func Test_parseRequestBody(t *testing.T) {
 					&MultipartField{
 						Param:       "foo",
 						ContentType: "text/plain",
-						Reader:      strings.NewReader("1"),
+						Stream:      NewStringMultipartStream("1"),
 					},
 					&MultipartField{
 						Param:       "bar",
 						ContentType: "text/plain",
-						Reader:      strings.NewReader("2"),
+						Stream:      NewStringMultipartStream("2"),
 					},
 				).SetContentLength(true)
 			},
@@ -819,7 +825,7 @@ func Test_parseRequestBody(t *testing.T) {
 				r.SetMultipartFields(&MultipartField{
 					Param:       "foo",
 					ContentType: "text/plain",
-					Reader:      &errorReader{},
+					Stream:      &errorMultipartStream{},
 				})
 			},
 			wantErr: true,
@@ -1048,7 +1054,7 @@ func Benchmark_parseRequestBody_MultiPart(b *testing.B) {
 			&MultipartField{
 				Param:       "sdj",
 				ContentType: "text/plain",
-				Reader:      strings.NewReader("8"),
+				Stream:      NewStringMultipartStream("8"),
 			},
 		).
 		SetContentLength(true)
