@@ -290,7 +290,15 @@ func functionName(i interface{}) string {
 }
 
 func acquireBuffer() *bytes.Buffer {
-	return bufPool.Get().(*bytes.Buffer)
+	b := bufPool.Get().(*bytes.Buffer)
+	if b.Len() != 0 {
+		// Sometimes under high request load in Resty it is possible that a buffer returned to the pool is still
+		// in used somewhere leading to the next request to be written after something else that exists in the buffer.
+		// To avoid simply, allocate a new buffer.
+		return new(bytes.Buffer)
+	}
+
+	return b
 }
 
 func releaseBuffer(buf *bytes.Buffer) {
